@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	NEO4J_URL = "bolt://username:password@localhost:7687"
+	NEO4J_URL = "bolt://yunwei:yunweiadmin@localhost:7687"
 )
 
 var (
@@ -17,22 +17,33 @@ var (
 )
 
 type Ne4jEncode struct {
-	Conn bolt.Conn
+	Drv bolt.DriverPool
 }
 
 func InitNe4j() (*Ne4jEncode, error) {
 
-	driver := bolt.NewDriver()
-	conn, err := driver.OpenNeo(NEO4J_URL)
+	drvPool, err := bolt.NewDriverPool(NEO4J_URL, 10)
 	if err != nil {
 		return nil, err
 	}
-	return &Ne4jEncode{Conn: conn}, nil
+	return &Ne4jEncode{Drv: drvPool}, nil
+
+}
+
+func (n4j *Ne4jEncode) retConn() (bolt.Conn, error) {
+	return n4j.Drv.OpenPool()
 }
 
 func (n4j *Ne4jEncode) FnFormatNodes(c echo.Context) error {
 
-	data, _, _, err := n4j.Conn.QueryNeoAll(cypherSearchNodes, nil)
+	conn, err := n4j.retConn()
+	if err != nil {
+		return err
+	}
+
+	defer conn.Close()
+
+	data, _, _, err := conn.QueryNeoAll(cypherSearchNodes, nil)
 
 	if err != nil {
 		return c.JSONPretty(http.StatusOK, []byte("Failed"), " ")
@@ -48,12 +59,6 @@ func (n4j *Ne4jEncode) FnFormatNodes(c echo.Context) error {
 			nds.Nodes = append(nds.Nodes, iNdata)
 		}
 
-		// js, err := json.Marshal(nds.Nodes)
-		// if err != nil {
-		// 	log.Println(err)
-		// }
-		// log.Println(string(js))
-
 		return c.JSONPretty(http.StatusOK, nds.Nodes, " ")
 
 	}
@@ -62,7 +67,13 @@ func (n4j *Ne4jEncode) FnFormatNodes(c echo.Context) error {
 
 func (n4j *Ne4jEncode) FnFormatRelationships(c echo.Context) error {
 
-	data, _, _, err := n4j.Conn.QueryNeoAll(cypherSearchRelationships, nil)
+	conn, err := n4j.retConn()
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	data, _, _, err := conn.QueryNeoAll(cypherSearchRelationships, nil)
 
 	if err != nil {
 		return c.JSONPretty(http.StatusOK, []byte("Failed"), " ")
@@ -80,6 +91,12 @@ func (n4j *Ne4jEncode) FnFormatRelationships(c echo.Context) error {
 			edges.Edges = append(edges.Edges, iEdge)
 
 		}
+
+		// js, err := json.Marshal(edges.Edges)
+		// if err != nil {
+		// 	log.Println(err)
+		// }
+		// log.Println(string(js))
 
 		return c.JSONPretty(http.StatusOK, edges.Edges, " ")
 

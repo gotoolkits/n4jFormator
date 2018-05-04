@@ -39,5 +39,4 @@ func main() {
 
 	e.Logger.Fatal(e.Start(":" + sHost))
 
-	defer ne4j.Conn.Close()
 }
