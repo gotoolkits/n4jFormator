@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	NEO4J_URL = "bolt://yunwei:yunweiadmin@localhost:7687"
+	NEO4J_URL = "bolt://username:password@localhost:7687"
 )
 
 var (
