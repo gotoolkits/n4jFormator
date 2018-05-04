@@ -11,11 +11,11 @@ Transfer Neo4j format data to   Cytoscape.js Elements format
 获取所有节点信息 
 To get all formatted nodes data 
 
-> API:    `/api/getNodes`
+> API:    `/api/getNodes` <br>
 > Cypher:  `MATCH (n) RETURN n`
 
 获取所有所有关系信息
 To get all formatted nodes relationships(paths) 
-> API:  `/api/getPaths`
+> API:  `/api/getPaths` <br>
 > Cypher:  `MATCH p=()-->() RETURN p`
  
